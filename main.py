@@ -15,7 +15,6 @@ def normalize_phone(phone):
         return None
 
 
-# поля
 class Field:
     def __init__(self, value):
         self.value = value
@@ -51,10 +50,11 @@ class Record:
 
     @ph.setter
     def add_phone(self, phone: str) -> None:
-        if not normalize_phone(phone):
-            print (f"('{phone}') -> Invalid phone number format != 10digit")
         phone = normalize_phone(phone)
-        self.phones.append(Phone(phone))
+        if not phone:
+            print (f"Invalid phone number format != 10digit")
+        else:
+            self.phones.append(Phone(phone))
     
     def remove_phone(self, phone_number: str) -> None | str:
         for phone in self.phones:
@@ -73,12 +73,14 @@ class Record:
                 break
         else:
             raise ValueError(f'phone {phone} not found in the record')        
-        
-    def find_phone(self, *args):
-        phone = args[0]
-        if phone in self.phones:
-            return Phone(phone)
-        return None
+      
+    def find_phone(self, phone_number: str) -> Phone | str:
+        for phone in self.phones:
+            if phone.value == phone_number:
+                return phone
+        else:
+            # raise ValueError(f'phone {phone_number} not found in the record')   
+            return (f'phone {phone_number} not found in the record')          
 
     def days_to_birthday(self) :
         if self.__birthday.value:
@@ -87,13 +89,13 @@ class Record:
             birth_date = datetime(year=current_date.year, month=birth_date.month,day=birth_date.day).date() 
             delta = birth_date - current_date
             if delta.days >=0:
-                print(f"{delta.days} days to birthday")
+                return(f"{delta.days} days to birthday")
             else:
                 birth_date = datetime(year=current_date.year+1, month=birth_date.month,day=birth_date.day).date() 
                 delta = birth_date - current_date
-                print(f"{delta.days} days to birthday")
+                return(f"{delta.days} days to birthday")
         else:
-            print('No birthday date')
+            return('No birthday date')
 
 
     @property
@@ -110,13 +112,14 @@ class Record:
 
 
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones:{'; '.join(p.value for p in self.phones)} {'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }"
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }"
 
 
 class AddressBook(UserDict):
     def add_record(self, *args): 
         name = args[0].name.value
         self.data[name] = args[0]
+        self.idx = 0
 
     def find(self, *args):
         name = args[0]
@@ -128,6 +131,25 @@ class AddressBook(UserDict):
     def delete(self, *args):
         if self.data.get(args[0]):
             self.data.pop(args[0])
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        lst =[]
+        for i in self.data.keys():
+            lst.append(i)
+        if self.idx >= len(book.data):
+            self.idx = 0
+            raise StopIteration
+        else:
+            i = lst[self.idx]
+            self.idx +=1
+            return book.data[i]
+            
+
+
+# ========================================
 
 
 def main():
@@ -155,11 +177,38 @@ if __name__ == "__main__":
     john_record.add_birthday = ("12-13-1990")
     john_record.add_birthday = ("1990-11-15")
     print(john_record.birthday )
-    john_record.days_to_birthday()
+    print(john_record.days_to_birthday())
 
+
+    # Створення запису для John2
+    john_record2 = Record("John2")
+    john_record2.add_phone = ("1234567892")
+    # Створення запису для John3
+    john_record3 = Record("John3")
+    john_record3.add_phone = ("1234567893")
+    # Створення запису для John4
+    john_record4 = Record("John4")
+    john_record4.add_phone = ("1234567894")
+    john_record4.add_birthday = ("1944-11-14")
+    # Створення запису для John5
+    john_record5 = Record("John5")
+    john_record5.add_phone = ("1234567895")
+    # Створення запису для John6
+    john_record6 = Record("John6")
+    john_record6.add_phone = ("1234567896")
 
     # Додавання запису John до адресної книги
     book.add_record(john_record)
+    # Додавання запису John до адресної книги
+    book.add_record(john_record2)
+    # Додавання запису John до адресної книги
+    book.add_record(john_record3)
+    # Додавання запису John до адресної книги
+    book.add_record(john_record4)
+    # Додавання запису John до адресної книги
+    book.add_record(john_record5)
+    # Додавання запису John до адресної книги
+    book.add_record(john_record6)
 
     # Створення та додавання нового запису для Jane
     jane_record = Record("Jane")
@@ -176,14 +225,22 @@ if __name__ == "__main__":
 
     print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
 
-    # Пошук конкретного телефону у записі John
-    found_phone = john.find_phone("5555555555")
+    # Пошук unknown телефону у записі John
+    found_phone = john.find_phone("5555155555")
     print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
+
+    # Пошук конкретного телефону у записі John
+    found_phone = john.find_phone("1112223333")
+    print(f"{john.name}: {found_phone}")  
 
 
     # Виведення всіх записів у книзі
-    for name, record in book.data.items():
-        print(record)
+    # for name, record in book.data.items():
+    #     print(record)
+
+    # Виведення iter
+    for cont in book:
+        print(cont)
 
     # add birthday
     # jane_record.add_birthday("11.11.2011")
