@@ -1,9 +1,12 @@
 
-# HW 10
+
+# HW 11 + 9
 
 from collections import UserDict
-from datetime import date, timedelta, datetime
-import re 
+from datetime import date, datetime
+# from itertools import islice
+import sys
+import re
 
 
 def normalize_phone(phone):
@@ -41,14 +44,14 @@ class Phone(Field):
 class Record:
     def __init__(self, name):
         self.name = Name(name)
-        self.phones = []
+        self.__phones = []
         self.__birthday = Birthday(None)
 
     @property
-    def ph(self):
-        return self.phones
+    def phones(self):
+        return self.__phones
 
-    @ph.setter
+    @phones.setter
     def add_phone(self, phone: str) -> None:
         phone = normalize_phone(phone)
         if not phone:
@@ -132,33 +135,205 @@ class AddressBook(UserDict):
         if self.data.get(args[0]):
             self.data.pop(args[0])
 
+
     def __iter__(self):
+        self.lst =[]
+        for i in self.data.keys():
+            self.lst.append(i)     # list of al contacts
         return self
 
     def __next__(self):
-        lst =[]
-        for i in self.data.keys():
-            lst.append(i)
         if self.idx >= len(book.data):
             self.idx = 0
             raise StopIteration
         else:
-            i = lst[self.idx]
             self.idx +=1
-            return book.data[i]
+            return book.data[self.lst[self.idx-1]]
             
-
-
 # ========================================
 
 
+
+  
+
+
+
+# ============================================================================================
+
+# ============================================================================================
+
+# ============================================================================================
+
+# ============================================================================================
+
+# ============================================================================================
+
+# ============================================================================================
+
+# ============================================================================================
+
+
+
+
+
+#  HW9
+
+
+phone_book = {'Nik' :'+380935609516', 'Anna':'+380993331122'}   #some names
+ 
+  
+# =================================================
+
+# def normalize_phone(text=''):
+#     numbers = re.findall('\d+', text)
+#     phone = (''.join(numbers))
+#     iterator = re.finditer(r"0[\d]{9}", phone)
+#     if iterator:
+#         for match in iterator:
+#             phone = match.group()
+#             return "+38"+phone
+#     else:
+#         return None
+
+# =================================================
+
+
+
+
+# decor
+def errors(func):
+    def inner(*args):
+        try:
+            return func(*args)
+        except :                  #any errors
+            return "Give me name and phone please !!!"
+    return inner
+
+
+# =================================================
+
+
+# greetings
+def greeting(_):
+    return ("How can I help you?")
+
+
+# add contact
+@errors
+def add(text=""):
+    text = text.removeprefix("add ")  #remove command
+    name = text.split()[0].title()    #get Name
+    text = text.removeprefix(name)    #remove Name
+    if not len(text) >9:
+        return 'Enter valid  phone'
+    phone = normalize_phone(text)
+    if not phone:
+        return 'Enter valid phone'
+    if not name in phone_book.keys():
+        phone_book[name] = phone
+        return name+" saved with number "+ phone
+    else:
+         return name+' allready exist in phone book'
+
+
+# change contact if exist
+@errors
+def change(text=""):
+    text = text.removeprefix("change ")
+    name = text.split()[0].title()
+    text = text.removeprefix(name)
+    if not len(text) >9:
+        return 'Enter valid name & phone'
+    phone = normalize_phone(text)
+    if not phone:
+        return 'Enter valid phone'
+    if name in phone_book.keys():
+        phone_book[name] = phone
+        return name+" change number to "+ phone
+    else:
+        return (f"no {name} in phone book")
+
+
+# search contact 
+def phone(text=""):
+    text = text.removeprefix("phone ")
+    name = text.split()[0].title()
+    if name in phone_book.keys():
+        return name+' -> '+phone_book[name] 
+    else:
+        return name+' not exist in phone book!!!' 
+
+
+# show all
+def show_all(_):
+    list = ''
+    for nam, ph in phone_book.items() :
+        list += (f"{nam} --> {ph} \n")
+    return list
+
+
+# show digit
+def show(text):
+    text = text.removeprefix("show")
+    text = text.strip()
+    if text.isdigit():
+        digit = int(text)
+        print(digit)
+    
+
+
+# exit program
+def exit(_):
+    # print("Good bye!")
+    return sys.exit('Good bye!\n')
+
+
+# dict for commands
+dic = { 
+    "hello":greeting,
+    "add ":add,
+    "change ":change,
+    "phone ":phone,
+    "show all":show_all,
+    "show":show,
+    "exit":exit,
+    "close":exit,
+    "good bye":exit,
+}
+
+
+# find command in text > return dict key
+def find_command(text=""): 
+    text = text.lower()
+    for kee in dic.keys():
+        if kee in text:
+            # func = dic[kee]
+            return kee
+    return None
+
+
 def main():
+    print("I'm Phone_Book_BOT, HELLO!!!")
     book = AddressBook()
+
+    # loop forever
+    while True:
+        user_input =  (input(">>>"))
+        comand = find_command(user_input)
+        if not comand:
+            print("Do not undestend, try again")
+        else:
+            out = dic[comand](user_input)
+            print(out)
+
 
 
 # ========================================
 if __name__ == "__main__":
     main()
+
+
+
 
 
 
@@ -170,6 +345,7 @@ if __name__ == "__main__":
     john_record = Record("John")
     john_record.add_phone = ("1234567890")
     john_record.add_phone = ("5555555555")
+    john_record.remove_phone("1234567890")
     john_record.add_phone = ("666 666-66-+66")
     john_record.add_phone = ("erty")
     # add birthday
@@ -213,6 +389,8 @@ if __name__ == "__main__":
     # Створення та додавання нового запису для Jane
     jane_record = Record("Jane")
     jane_record.add_phone ="9876543210"
+    # add birthday
+    jane_record.add_birthday = ("1988-11-6")
     book.add_record(jane_record)
 
     # Виведення всіх записів у книзі
@@ -221,9 +399,10 @@ if __name__ == "__main__":
 
     # Знаходження та редагування телефону для John
     john = book.find("John")
-    john.edit_phone("1234567890", "1112223333")
+    john.edit_phone("5555555555", "1112223333")
 
     print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
+
 
     # Пошук unknown телефону у записі John
     found_phone = john.find_phone("5555155555")
@@ -233,18 +412,25 @@ if __name__ == "__main__":
     found_phone = john.find_phone("1112223333")
     print(f"{john.name}: {found_phone}")  
 
-
+    print('\r\n\n')
     # Виведення всіх записів у книзі
     # for name, record in book.data.items():
     #     print(record)
 
-    # Виведення iter
+
+    # Виведення iter all
+    # for cont in book:
+    #     print(cont)
+
+    counter = 4
+
+    count = counter
     for cont in book:
-        print(cont)
-
-    # add birthday
-    # jane_record.add_birthday("11.11.2011")
-
-
-
-
+        # count = counter
+        if count > 0:
+            count -= 1
+            print(cont)
+        else:
+            count = counter
+            input("Press Enter for next records")
+    
