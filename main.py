@@ -143,13 +143,24 @@ class AddressBook(UserDict):
         return self
 
     def __next__(self):
-        if self.idx >= len(book.data):
+        # if self.idx >= len(book.data):
+        #     self.idx = 0
+        #     raise StopIteration
+        # else:
+        #     self.idx +=1
+        #     return book.data[self.lst[self.idx-1]]
+        if self.idx < len(book.data):
+            self.idx += 1
+            return book.data[self.lst[self.idx-1]]
+        else:
             self.idx = 0
             raise StopIteration
-        else:
-            self.idx +=1
-            return book.data[self.lst[self.idx-1]]
-            
+
+
+    # def __str__(self):
+    #     return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }"
+
+        
 # ========================================
 
 
@@ -163,37 +174,6 @@ class AddressBook(UserDict):
 # ============================================================================================
 
 # ============================================================================================
-
-# ============================================================================================
-
-# ============================================================================================
-
-# ============================================================================================
-
-# ============================================================================================
-
-
-
-
-
-#  HW9
-
-
-phone_book = {'Nik' :'+380935609516', 'Anna':'+380993331122'}   #some names
- 
-  
-# =================================================
-
-# def normalize_phone(text=''):
-#     numbers = re.findall('\d+', text)
-#     phone = (''.join(numbers))
-#     iterator = re.finditer(r"0[\d]{9}", phone)
-#     if iterator:
-#         for match in iterator:
-#             phone = match.group()
-#             return "+38"+phone
-#     else:
-#         return None
 
 # =================================================
 
@@ -229,11 +209,30 @@ def add(text=""):
     phone = normalize_phone(text)
     if not phone:
         return 'Enter valid phone'
-    if not name in phone_book.keys():
-        phone_book[name] = phone
-        return name+" saved with number "+ phone
-    else:
-         return name+' allready exist in phone book'
+    if not book.find(name):
+        name = Record(name)
+        name.add_phone = phone
+        book.add_record(name)
+        return name.name.value+" saved with number "+ phone
+    name = book.find(name)
+    name.add_phone = phone
+    book.add_record(name)
+    return  name.name.value+' added phone '+ phone
+
+
+
+    # if not name in book.data.keys():
+    #     name = Record(name)
+    #     name.add_phone = phone
+    #     book.add_record(name)
+    #     return name.name.value+" saved with number "+ phone
+    # else:
+    #     if not Phone(phone) in book.data[name].phones : 
+    #         book.data[name].phones.append(Phone(phone))
+    #         return  name+' added '+ phone
+    #     else:
+    #         return  name+' allready have'+ phone
+
 
 
 # change contact if exist
@@ -247,9 +246,12 @@ def change(text=""):
     phone = normalize_phone(text)
     if not phone:
         return 'Enter valid phone'
-    if name in phone_book.keys():
-        phone_book[name] = phone
-        return name+" change number to "+ phone
+    if name in book.data.keys():
+        name = book.data[name]
+        old_phone =  name.phones[0].value  #name.phones.value
+        name.edit_phone(old_phone, phone)
+        # print(name)
+        return name.name.value+" change number to "+ phone
     else:
         return (f"no {name} in phone book")
 
@@ -258,18 +260,23 @@ def change(text=""):
 def phone(text=""):
     text = text.removeprefix("phone ")
     name = text.split()[0].title()
-    if name in phone_book.keys():
-        return name+' -> '+phone_book[name] 
+    if name in book.data.keys():
+        return  book.data[name]
     else:
         return name+' not exist in phone book!!!' 
 
 
-# show all
+# show all iter
 def show_all(_):
     list = ''
-    for nam, ph in phone_book.items() :
-        list += (f"{nam} --> {ph} \n")
+    for cont in book:
+        list += str(cont) +'\r\n'
     return list
+
+    # list = ''
+    # for nam, ph in phone_book.items() :
+    #     list += (f"{nam} --> {ph} \n")
+    # return list
 
 
 # show digit
@@ -277,8 +284,16 @@ def show(text):
     text = text.removeprefix("show")
     text = text.strip()
     if text.isdigit():
-        digit = int(text)
-        print(digit)
+        counter = int(text)        
+    count = counter
+    for cont in book:
+        if count > 0:
+            count -= 1
+            print(cont)
+        else:
+            input("Press Enter for next records >>>")
+            count = counter
+    return 'finish '
     
 
 
@@ -290,6 +305,7 @@ def exit(_):
 
 # dict for commands
 dic = { 
+    "hi":greeting,
     "hello":greeting,
     "add ":add,
     "change ":change,
@@ -311,10 +327,30 @@ def find_command(text=""):
             return kee
     return None
 
+book = AddressBook()
 
 def main():
+    
+    john_record2 = Record("John1")
+    john_record2.add_phone = ("1234567892")
+    john_record3 = Record("John2")
+    john_record3.add_phone = ("1234567893")
+    john_record4 = Record("John3")
+    john_record4.add_phone = ("1234567894")
+    john_record4.add_birthday = ("1944-11-14")
+    john_record5 = Record("John4")
+    john_record5.add_phone = ("1234567895")
+    john_record6 = Record("John5")
+    john_record6.add_phone = ("1234567896")
+    book.add_record(john_record2)
+    book.add_record(john_record3)
+    book.add_record(john_record4)
+    book.add_record(john_record5)
+    book.add_record(john_record6)
+
+
     print("I'm Phone_Book_BOT, HELLO!!!")
-    book = AddressBook()
+    # book = AddressBook()
 
     # loop forever
     while True:
@@ -339,7 +375,7 @@ if __name__ == "__main__":
 
 
     # Створення нової адресної книги
-    book = AddressBook()
+    # book = AddressBook()
 
     # Створення запису для John
     john_record = Record("John")
