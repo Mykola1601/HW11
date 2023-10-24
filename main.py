@@ -44,7 +44,8 @@ class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.__phones = []
-        self.__birthday = Birthday(None)
+        self.__birthday = None
+        # self.__birthday = Birthday(None)
 
     @property
     def phones(self):
@@ -114,7 +115,8 @@ class Record:
 
 
     def __str__(self):
-        return f"Contact: {self.name.value}; phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }{';  '+ Record.days_to_birthday(self) if self.__birthday.value else '' }"
+        return f"Contact: {self.name.value}; phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday else '' }{';  '+ Record.days_to_birthday(self) if self.__birthday else '' }"
+        # return f"Contact: {self.name.value}; phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }{';  '+ Record.days_to_birthday(self) if self.__birthday.value else '' }"
 
 
 class AddressBook(UserDict):
