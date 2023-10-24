@@ -4,7 +4,6 @@
 
 from collections import UserDict
 from datetime import date, datetime
-# from itertools import islice
 import sys
 import re
 
@@ -115,7 +114,7 @@ class Record:
 
 
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }"
+        return f"Contact: {self.name.value}; phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }{';  '+ Record.days_to_birthday(self) if self.__birthday.value else '' }"
 
 
 class AddressBook(UserDict):
@@ -139,16 +138,10 @@ class AddressBook(UserDict):
     def __iter__(self):
         self.lst =[]
         for i in self.data.keys():
-            self.lst.append(i)     # list of al contacts
+            self.lst.append(i)     # list of al contacts for iter
         return self
 
     def __next__(self):
-        # if self.idx >= len(book.data):
-        #     self.idx = 0
-        #     raise StopIteration
-        # else:
-        #     self.idx +=1
-        #     return book.data[self.lst[self.idx-1]]
         if self.idx < len(book.data):
             self.idx += 1
             return book.data[self.lst[self.idx-1]]
@@ -157,27 +150,9 @@ class AddressBook(UserDict):
             raise StopIteration
 
 
-    # def __str__(self):
-    #     return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }"
-
-        
-# ========================================
-
-
-
   
 
-
-
 # ============================================================================================
-
-# ============================================================================================
-
-# ============================================================================================
-
-# =================================================
-
-
 
 
 # decor
@@ -186,11 +161,8 @@ def errors(func):
         try:
             return func(*args)
         except :                  #any errors
-            return "Give me name and phone please !!!"
+            return "Give me valid data !!!"
     return inner
-
-
-# =================================================
 
 
 # greetings
@@ -203,7 +175,7 @@ def greeting(_):
 def add(text=""):
     text = text.removeprefix("add ")  #remove command
     name = text.split()[0].title()    #get Name
-    text = text.removeprefix(name)    #remove Name
+    text = text.removeprefix(name.lower())    #remove Name
     if not len(text) >9:
         return 'Enter valid  phone'
     phone = normalize_phone(text)
@@ -220,18 +192,19 @@ def add(text=""):
     return  name.name.value+' added phone '+ phone
 
 
+# add birthday
+@errors
+def birthday(text=""):
+    text = text.removeprefix("birthday ")         #remove command
+    name = text.split()[0].title()               #get Name
+    text = text.removeprefix(name.lower())       #remove Name
+    birthday = text.strip()
+    if book.data[name]:
+        book.data[name].add_birthday = (birthday)
+        return book.data[name]
+    else:
+        return 'no'+name
 
-    # if not name in book.data.keys():
-    #     name = Record(name)
-    #     name.add_phone = phone
-    #     book.add_record(name)
-    #     return name.name.value+" saved with number "+ phone
-    # else:
-    #     if not Phone(phone) in book.data[name].phones : 
-    #         book.data[name].phones.append(Phone(phone))
-    #         return  name+' added '+ phone
-    #     else:
-    #         return  name+' allready have'+ phone
 
 
 
@@ -240,7 +213,7 @@ def add(text=""):
 def change(text=""):
     text = text.removeprefix("change ")
     name = text.split()[0].title()
-    text = text.removeprefix(name)
+    text = text.removeprefix(name.lower())
     if not len(text) >9:
         return 'Enter valid name & phone'
     phone = normalize_phone(text)
@@ -273,10 +246,6 @@ def show_all(_):
         list += str(cont) +'\r\n'
     return list
 
-    # list = ''
-    # for nam, ph in phone_book.items() :
-    #     list += (f"{nam} --> {ph} \n")
-    # return list
 
 
 # show digit
@@ -285,11 +254,11 @@ def show(text):
     text = text.strip()
     if text.isdigit():
         counter = int(text)        
-    count = counter
+    count = counter 
     for cont in book:
-        if count > 0:
+        print(cont)
+        if count > 1:
             count -= 1
-            print(cont)
         else:
             input("Press Enter for next records >>>")
             count = counter
@@ -299,7 +268,6 @@ def show(text):
 
 # exit program
 def exit(_):
-    # print("Good bye!")
     return sys.exit('Good bye!\n')
 
 
@@ -307,11 +275,12 @@ def exit(_):
 dic = { 
     "hi":greeting,
     "hello":greeting,
+    "birthday ":birthday,     #adding birthday
     "add ":add,
     "change ":change,
     "phone ":phone,
     "show all":show_all,
-    "show":show,
+    "show":show,            # show 2 -- for iter
     "exit":exit,
     "close":exit,
     "good bye":exit,
@@ -323,35 +292,15 @@ def find_command(text=""):
     text = text.lower()
     for kee in dic.keys():
         if kee in text:
-            # func = dic[kee]
             return kee
     return None
+
+
 
 book = AddressBook()
 
 def main():
-    
-    john_record2 = Record("John1")
-    john_record2.add_phone = ("1234567892")
-    john_record3 = Record("John2")
-    john_record3.add_phone = ("1234567893")
-    john_record4 = Record("John3")
-    john_record4.add_phone = ("1234567894")
-    john_record4.add_birthday = ("1944-11-14")
-    john_record5 = Record("John4")
-    john_record5.add_phone = ("1234567895")
-    john_record6 = Record("John5")
-    john_record6.add_phone = ("1234567896")
-    book.add_record(john_record2)
-    book.add_record(john_record3)
-    book.add_record(john_record4)
-    book.add_record(john_record5)
-    book.add_record(john_record6)
-
-
     print("I'm Phone_Book_BOT, HELLO!!!")
-    # book = AddressBook()
-
     # loop forever
     while True:
         user_input =  (input(">>>"))
@@ -374,99 +323,78 @@ if __name__ == "__main__":
 
 
 
-    # Створення нової адресної книги
-    # book = AddressBook()
-
-    # Створення запису для John
-    john_record = Record("John")
-    john_record.add_phone = ("1234567890")
-    john_record.add_phone = ("5555555555")
-    john_record.remove_phone("1234567890")
-    john_record.add_phone = ("666 666-66-+66")
-    john_record.add_phone = ("erty")
-    # add birthday
-    john_record.add_birthday = ("1200.12.10")
-    john_record.add_birthday = ("12-13-1990")
-    john_record.add_birthday = ("1990-11-15")
-    print(john_record.birthday )
-    print(john_record.days_to_birthday())
-
-
-    # Створення запису для John2
-    john_record2 = Record("John2")
-    john_record2.add_phone = ("1234567892")
-    # Створення запису для John3
-    john_record3 = Record("John3")
-    john_record3.add_phone = ("1234567893")
-    # Створення запису для John4
-    john_record4 = Record("John4")
-    john_record4.add_phone = ("1234567894")
-    john_record4.add_birthday = ("1944-11-14")
-    # Створення запису для John5
-    john_record5 = Record("John5")
-    john_record5.add_phone = ("1234567895")
-    # Створення запису для John6
-    john_record6 = Record("John6")
-    john_record6.add_phone = ("1234567896")
-
-    # Додавання запису John до адресної книги
-    book.add_record(john_record)
-    # Додавання запису John до адресної книги
-    book.add_record(john_record2)
-    # Додавання запису John до адресної книги
-    book.add_record(john_record3)
-    # Додавання запису John до адресної книги
-    book.add_record(john_record4)
-    # Додавання запису John до адресної книги
-    book.add_record(john_record5)
-    # Додавання запису John до адресної книги
-    book.add_record(john_record6)
-
-    # Створення та додавання нового запису для Jane
-    jane_record = Record("Jane")
-    jane_record.add_phone ="9876543210"
-    # add birthday
-    jane_record.add_birthday = ("1988-11-6")
-    book.add_record(jane_record)
-
-    # Виведення всіх записів у книзі
-    for name, record in book.data.items():
-        print(record)
-
-    # Знаходження та редагування телефону для John
-    john = book.find("John")
-    john.edit_phone("5555555555", "1112223333")
-
-    print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
+    # john_record2 = Record("John1")
+    # john_record2.add_phone = ("1234567892")
+    # john_record3 = Record("John2")
+    # john_record3.add_phone = ("1234567893")
+    # john_record4 = Record("John3")
+    # john_record4.add_phone = ("1234567894")
+    # john_record4.add_birthday = ("1944-11-14")
+    # john_record5 = Record("John4")
+    # john_record5.add_phone = ("1234567895")
+    # john_record6 = Record("John5")
+    # john_record6.add_phone = ("1234567896")
+    # book.add_record(john_record2)
+    # book.add_record(john_record3)
+    # book.add_record(john_record4)
+    # book.add_record(john_record5)
+    # book.add_record(john_record6)
 
 
-    # Пошук unknown телефону у записі John
-    found_phone = john.find_phone("5555155555")
-    print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
+    # john_record2 = Record("John2")
+    # john_record2.add_phone = ("1234567892")
+    # # Створення запису для John3
+    # john_record3 = Record("John3")
+    # john_record3.add_phone = ("1234567893")
+    # # Створення запису для John4
+    # john_record4 = Record("John4")
+    # john_record4.add_phone = ("1234567894")
+    # john_record4.add_birthday = ("1944-11-14")
+    # # Створення запису для John5
+    # john_record5 = Record("John5")
+    # john_record5.add_phone = ("1234567895")
+    # # Створення запису для John6
+    # john_record6 = Record("John6")
+    # john_record6.add_phone = ("1234567896")
 
-    # Пошук конкретного телефону у записі John
-    found_phone = john.find_phone("1112223333")
-    print(f"{john.name}: {found_phone}")  
+    # # Додавання запису John до адресної книги
+    # book.add_record(john_record)
+    # # Додавання запису John до адресної книги
+    # book.add_record(john_record2)
+    # # Додавання запису John до адресної книги
+    # book.add_record(john_record3)
+    # # Додавання запису John до адресної книги
+    # book.add_record(john_record4)
+    # # Додавання запису John до адресної книги
+    # book.add_record(john_record5)
+    # # Додавання запису John до адресної книги
+    # book.add_record(john_record6)
 
-    print('\r\n\n')
-    # Виведення всіх записів у книзі
+    # # Створення та додавання нового запису для Jane
+    # jane_record = Record("Jane")
+    # jane_record.add_phone ="9876543210"
+    # # add birthday
+    # jane_record.add_birthday = ("1988-11-6")
+    # book.add_record(jane_record)
+
+    # # Виведення всіх записів у книзі
     # for name, record in book.data.items():
     #     print(record)
 
+    # # Знаходження та редагування телефону для John
+    # john = book.find("John")
+    # john.edit_phone("5555555555", "1112223333")
 
-    # Виведення iter all
-    # for cont in book:
-    #     print(cont)
+    # print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
 
-    counter = 4
 
-    count = counter
-    for cont in book:
-        # count = counter
-        if count > 0:
-            count -= 1
-            print(cont)
-        else:
-            count = counter
-            input("Press Enter for next records")
+    # # Пошук unknown телефону у записі John
+    # found_phone = john.find_phone("5555155555")
+    # print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
+
+    # # Пошук конкретного телефону у записі John
+    # found_phone = john.find_phone("1112223333")
+    # print(f"{john.name}: {found_phone}")  
+
+    # print('\r\n\n')
     
