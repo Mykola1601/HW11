@@ -32,33 +32,59 @@ class Name(Field):
 
 class Birthday(Field):
     def __init__(self, value):
+        self.__value = None
         self.value = value
-  
 
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value: str) -> None:
+        birthday = datetime.strptime(str(value), '%Y-%m-%d')
+        birthday = birthday.date()
+        self.__value = birthday
+        if not self.__value:
+            raise ValueError  (f"Invalid  format  birthday")
+
+    def __str__(self):
+        return str(self.value)
+
+  
 class Phone(Field):
     def __init__(self, value):
-        super().__init__(value)
+        self.__value = None
+        self.value = value
+        # super().__init__(self.__value)
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value: str) -> None:
+        self.__value = normalize_phone(value)
+        if not self.__value:
+            raise ValueError  (f"Invalid phone number format != 10digit")
+
+    
 
 
 class Record:
     def __init__(self, name):
         self.name = Name(name)
-        self.__phones = []
+        # self.__phones = []
+        self.phones = []
         self.__birthday = None
-        # self.__birthday = Birthday(None)
 
-    @property
-    def phones(self):
-        return self.__phones
-
-    @phones.setter
     def add_phone(self, phone: str) -> None:
-        phone = normalize_phone(phone)
-        if not phone:
-            print (f"Invalid phone number format != 10digit")
-        else:
+        if phone not in self.phones:
             self.phones.append(Phone(phone))
+            return f"Phone number {phone} add to contact {self.name}"
+        print (f"Phone number {phone} present in contact {self.name}")
+
     
+
     def remove_phone(self, phone_number: str) -> None | str:
         for phone in self.phones:
             if phone.value == phone_number:
@@ -66,6 +92,7 @@ class Record:
                 break
         else:
             raise ValueError(f'phone {phone_number} not found ')
+
 
     def edit_phone(self, *args):
         old_phone = args[0]
@@ -101,22 +128,15 @@ class Record:
             return('No birthday date')
 
 
-    @property
-    def birthday(self):
-        return f'{self.name.value} birthday {self.__birthday.value}'
-
-    @birthday.setter
     def add_birthday(self, *args):
         try:
-            birthday = datetime.strptime(str(args[0]), '%Y-%m-%d')
-            self.__birthday = Birthday(birthday.date()) 
+            self.__birthday = Birthday(args[0]) 
         except ValueError:
             print('Error input - Enter birthday in format YYYY-mm-dd')
 
 
     def __str__(self):
         return f"Contact: {self.name.value}; phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday else '' }{';  '+ Record.days_to_birthday(self) if self.__birthday else '' }"
-        # return f"Contact: {self.name.value}; phones: {'; '.join(p.value for p in self.phones)}{'; Birthday '+ str(self.__birthday.value) if self.__birthday.value else '' }{';  '+ Record.days_to_birthday(self) if self.__birthday.value else '' }"
 
 
 class AddressBook(UserDict):
@@ -179,17 +199,18 @@ def add(text=""):
     name = text.split()[0].title()    #get Name
     text = text.removeprefix(name.lower())    #remove Name
     if not len(text) >9:
-        return 'Enter valid  phone'
+        return 'Enter valid  phone 10dig'
     phone = normalize_phone(text)
+    # phone = text
     if not phone:
-        return 'Enter valid phone'
+        return 'Enter valid phone 10 dig'
     if not book.find(name):
         name = Record(name)
-        name.add_phone = phone
+        name.add_phone(phone)
         book.add_record(name)
         return name.name.value+" saved with number "+ phone
     name = book.find(name)
-    name.add_phone = phone
+    name.add_phone(phone)
     book.add_record(name)
     return  name.name.value+' added phone '+ phone
 
@@ -201,11 +222,11 @@ def birthday(text=""):
     name = text.split()[0].title()               #get Name
     text = text.removeprefix(name.lower())       #remove Name
     birthday = text.strip()
-    if book.data[name]:
-        book.data[name].add_birthday = (birthday)
+    if book.data.get(name):
+        book.data[name].add_birthday(birthday)
         return book.data[name]
     else:
-        return 'no'+name
+        return 'no '+name+' in book, add phone first'
 
 
 
@@ -225,7 +246,6 @@ def change(text=""):
         name = book.data[name]
         old_phone =  name.phones[0].value  #name.phones.value
         name.edit_phone(old_phone, phone)
-        # print(name)
         return name.name.value+" change number to "+ phone
     else:
         return (f"no {name} in phone book")
@@ -302,6 +322,12 @@ def find_command(text=""):
 book = AddressBook()
 
 def main():
+    
+    john_record2 = Record("John1")
+    john_record2.add_phone("1234567892")
+    john_record2.add_birthday ("1944-11-14")
+    book.add_record(john_record2)
+
     print("I'm Phone_Book_BOT, HELLO!!!")
     # loop forever
     while True:
